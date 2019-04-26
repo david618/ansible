@@ -1,0 +1,10 @@
+---
+- hosts: all
+  become: true
+
+  tasks:
+  - name: Copy /etc/hosts from bastion to spark nodes
+    copy:
+      src: /etc/hosts
+      dest: /etc/hosts
+

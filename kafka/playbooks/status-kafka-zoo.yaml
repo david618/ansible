@@ -1,0 +1,20 @@
+---
+- hosts: brokers
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+
+  tasks:
+  - name: Status zookeeper
+    shell: systemctl is-active zookeeper
+    register: shell_results
+
+  - debug:
+      var: shell_results.stdout_lines
+
+  - name: Status Kafka
+    shell: systemctl is-active kafka
+    register: shell_results
+
+  - debug:
+      var: shell_results.stdout_lines

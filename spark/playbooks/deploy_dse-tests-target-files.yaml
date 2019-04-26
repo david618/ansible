@@ -1,0 +1,35 @@
+---
+- hosts: spark
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+
+  tasks:
+  - name: Copy dse-tests to spark nodes
+    copy:
+      src: /home/centos/dse-tests-target-files.tgz
+      dest: /home/spark/dse-tests-target-files.tgz
+      owner: spark
+      group: spark
+
+  - name: Unarchive dse-tests
+    unarchive:
+      src: /home/spark/dse-tests-target-files.tgz
+      remote_src: yes
+      dest: /home/spark
+      group: spark
+      owner: spark
+
+  - name: Set Permissions
+    file:
+      path: /home/spark/dse-tests
+      owner: spark
+      group: spark
+      recurse: yes
+
+  - name: Copy log4j2conf.xml
+    copy:
+      src: /home/centos/log4j2conf.xml
+      dest: /home/spark/log4j2conf.xml
+      owner: spark
+      group: spark

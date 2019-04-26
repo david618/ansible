@@ -1,0 +1,10 @@
+---
+- hosts: nodes 
+  become: true
+  
+  tasks:
+  - name: Stop Elasticsearch 
+    service:
+      name: elasticsearch
+      state: stopped
+ 

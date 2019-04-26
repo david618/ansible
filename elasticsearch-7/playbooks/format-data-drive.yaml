@@ -1,0 +1,43 @@
+---
+- hosts: nodes
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true 
+
+  tasks:
+  - name: Install gdisk
+    yum:
+      name: gdisk
+      state: present      
+
+  - name: Create elastic user
+    user:
+      name: elasticsearch
+      system: yes
+
+  - name: Create Directory /opt/elasticsearch
+    file:
+      path: /opt/elasticsearch
+      state: directory
+
+  - name: Find, partition, format empty disk
+    script: ../files/format-drive.sh
+    register: uuid
+
+  - name: Mount and add disk to fstab
+    mount:
+      path: /opt/elasticsearch
+      src: "UUID={{ uuid.stdout_lines[-1] | trim }}"
+      fstype: xfs
+      state: mounted
+    when: uuid.stdout_lines[-1] != "None"
+
+  - name: Set Permissions /opt/elasticsearch
+    file:
+      path: /opt/elasticsearch
+      state: directory
+      owner: elasticsearch
+      group: elasticsearch
+      mode: 0755
+      recurse: yes 
+

@@ -1,0 +1,32 @@
+---
+# From home folder after building sparktest create the tgz file for example
+- hosts: spark
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+
+  tasks:
+  - name: Copy rttest to spark nodes
+    copy:
+      src: ~{{ sudouser }}/rttest-files.tgz
+      dest: ~{{ sudouser}}/rttest-files.tgz
+
+
+  - name: Remove rttest folder if exists
+    file:
+      state: absent
+      path: ~{{ sudouser }}/rttest
+
+  - name: Unarchive rttest
+    unarchive:
+      src: ~{{ sudouser }}/rttest-files.tgz
+      remote_src: yes
+      dest: ~{{ sudouser }} 
+
+  - name: Set Permissions
+    file:
+      path: ~{{ sudouser }}/rttest
+      owner: "{{ sudouser }}"
+      group: "{{ sudouser }}"
+      recurse: yes
+

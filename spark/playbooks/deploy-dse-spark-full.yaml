@@ -1,0 +1,14 @@
+---
+- hosts: spark
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+
+  tasks:
+  - name: Copy dse-spark-jull.jar to spark nodes
+    copy:
+      src: ~{{ sudouser }}/dse-spark-full.jar
+      dest: /home/spark/dse-spark-full.jar
+      owner: spark
+      group: spark
+

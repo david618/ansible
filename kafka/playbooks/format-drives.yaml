@@ -1,0 +1,71 @@
+---
+- hosts: brokers
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true 
+
+  tasks:
+  - name: Find Unpartitioned Drive
+    shell: |
+      unPartedDisk="None"
+      for disk in $(lsblk -e 2 | grep disk | cut -d ' ' -f1); do 
+        a=$(blkid | grep -v PTTYPE | grep ${disk})
+        if [[ -z ${a} ]]; then
+          unPartedDisk=${disk}
+          break
+        fi
+      done 
+      echo $unPartedDisk
+    register: unPartedDisk
+
+  - name: Show the Drive if Found
+    debug:
+      msg: "Unpartition Drive is: {{ unPartedDisk.stdout }}"
+    when: unPartedDisk.stdout != "None"
+
+  - name: Partition Unpartitioned Drive 
+    parted:
+      device: "/dev/{{ unPartedDisk.stdout }}"
+      number: 1
+      state: present
+    register: part_info
+    when: unPartedDisk.stdout != "None"
+
+  - name: Find Partition
+    shell: lsblk -l | grep "{{ unPartedDisk.stdout }}" | grep part | cut -d ' ' -f1
+    register: partition
+    when: unPartedDisk.stdout != "None"
+
+  - name: Show Partition if Found
+    debug:
+      msg: "Partition is: {{ partition.stdout }}"
+    when: unPartedDisk.stdout != "None"
+
+  - name: Format the partition
+    filesystem:
+      fstype: xfs
+      dev: "/dev/{{ partition.stdout }}"
+      force: yes
+    when: unPartedDisk.stdout != "None"
+
+  - name: Create Directory /opt/kafka
+    file:
+      path: /opt/kafka
+      state: directory
+    when: unPartedDisk.stdout != "None"
+
+  - name: Find uuid
+    shell: blkid | grep "{{ partition.stdout }}" | cut -d ' ' -f2 | tr -d '"'
+    register: uuid
+    when: unPartedDisk.stdout != "None"
+
+  - name: Mount and add to fstab using uuid
+    mount:
+      path: /opt/kafka
+      src: "{{ uuid.stdout }}"
+      fstype: xfs
+      state: mounted
+    when: unPartedDisk.stdout != "None"
+
+
+

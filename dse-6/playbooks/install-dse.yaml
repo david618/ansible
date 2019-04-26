@@ -1,0 +1,95 @@
+---
+- hosts: dse
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+
+  tasks:
+  - name: Install java
+    yum:
+      name: epel-release, java-1.8.0-openjdk
+      state: present
+
+  - name: Setup DSE Repo
+    yum_repository:
+      name: datastax-repo
+      file: datastax
+      description: DataStax Repo for DataStax Enterprise
+      # Set Datastax Academy Email Address and Password. 
+      # For email use %40 instead of @ (e.g. somename%40somedomain.com))
+      # Some special characters in password may cause problems. Stick with letters upper/lower and numbers. 
+      # If you must you special chars in password; you might need to use Ascii codes like we did for @ in email
+      baseurl: https://somename%40somedomain.com:yourpassword@rpm.datastax.com/enterprise
+      gpgcheck: no
+      enabled: yes
+      state: present
+
+- hosts: dse-opscenter
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+  tasks:
+  - name: Install Opscenter 
+    yum:
+      name: opscenter
+      state: present
+  - name: Start and enable Opscenter
+    systemd:
+      name: opscenterd
+      state: started
+      enabled: True
+  
+
+- hosts: dse-solr-nodes
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+  
+  tasks:
+  - name: Install DSE
+    yum:
+      #name: dse-full-5.1.10-1
+      name: dse-full
+      state: present
+
+  - name: Copy dse config file
+    copy:
+      src: ../files/dse
+      dest: /etc/default/dse
+
+  - name: Copy dse.yaml config file
+    copy:
+      src: ../files/dse.yaml
+      dest: /etc/dse/dse.yaml
+
+  - name: Copy jvm.options file
+    copy:
+      src: ../files/jvm.options
+      dest: /etc/dse/cassandra/jvm.options
+
+  - name: Copy cassandra.yaml
+    template:
+      src: ../files/cassandra.yaml.j2
+      dest: /etc/dse/cassandra/cassandra.yaml
+
+  - name: Install Datastax Agent 
+    yum:
+      name: datastax-agent
+      state: present
+
+  - name: Copy address.yaml 
+    template:
+      src: ../files/address.yaml.j2
+      dest: /var/lib/datastax-agent/conf/address.yaml 
+ 
+  - name: Start and enable dse
+    service:
+      name: dse
+      state: started
+      enabled: True
+ 
+  - name: Start and enable datastax-agent 
+    systemd:
+      name: datastax-agent
+      state: started
+      enabled: True

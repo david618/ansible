@@ -1,0 +1,16 @@
+[dse-solr-nodes]
+a21
+a22
+a23
+#a24
+#a25
+#a26
+#a27
+#a28
+#a29
+#a30
+[dse-opscenter]
+p1
+[dse:children]
+dse-solr-nodes
+dse-opscenter

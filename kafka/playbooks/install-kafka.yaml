@@ -1,0 +1,108 @@
+---
+- hosts: brokers
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+    ip: "{{ ansible_default_ipv4.address }}"
+    kafkaFullVer: "kafka_2.11-2.1.0"
+    kafkaVer: "2.1.0"
+  become: true
+
+  tasks:
+  - name: Set BrokerID
+    command: "echo {{ ip.split('.')[-1] }}"
+    register: brokerID
+
+  - name: Create kafka user
+    user:
+      name: kafka
+      system: yes
+
+  - name: Create zookeeper folder
+    file:
+      path: /opt/kafka/zookeeper
+      state: directory
+
+  - name: Create myid for Zookeeper
+    shell: "echo {{ brokerID.stdout }} > /opt/kafka/zookeeper/myid"
+     
+  - name: Change Permissions /opt/kafka
+    file:
+      path: /opt/kafka
+      state: directory
+      owner: kafka
+      group: kafka
+      mode: 0775
+      recurse: yes
+
+  - name: Install Java and Epel
+    yum:
+      name: epel-release, java-1.8.0-openjdk
+      state: present
+
+  - name: Install jq
+    yum:
+      name: jq
+      state: present
+
+  - name: Get kafka 
+    get_url:
+      url: "http://archive.apache.org/dist/kafka/{{ kafkaVer }}/{{ kafkaFullVer }}.tgz"
+      dest: "/tmp/{{ kafkaFullVer }}.tgz"
+      checksum: md5:3EE55CD897F12C637ABB40B2A78E8FE9
+
+  - name: Extract Kafka Archive into /home/kafka
+    unarchive:
+      src: "/tmp/{{ kafkaFullVer }}.tgz"
+      dest: /home/kafka
+      remote_src: yes
+
+  - name: Change Permissions /home/kafka/{{ kafkaFullVer }}
+    file:
+      path: /home/kafka/{{ kafkaFullVer }}
+      state: directory
+      owner: kafka
+      group: kafka
+      mode: 0775
+      recurse: yes
+
+  - name: Create symbolic link for kafka
+    file:
+      src: /home/kafka/{{ kafkaFullVer }}
+      dest: /home/kafka/kafka
+      owner: kafka
+      group: kafka
+      state: link
+ 
+  - name: Create Zookeeper.properties
+    template:
+      src: ../files/zookeeper.properties.j2
+      dest: /home/kafka/kafka/config/zookeeper.properties
+
+  - name: Create server.properties
+    template:
+      src: ../files/server.properties.j2
+      dest: /home/kafka/kafka/config/server.properties
+
+  - name: Copy Zookeeper Service File
+    copy:
+      src: ../files/zookeeper.service
+      dest: /etc/systemd/system
+
+  - name: Copy Kafka Service File
+    copy:
+      src: ../files/kafka.service
+      dest: /etc/systemd/system
+
+  - name: Start and Enable zookeeper
+    systemd:
+      name: zookeeper
+      state: started
+      enabled: true
+
+  - name: Start and Enable Kafka
+    systemd:
+      name: kafka
+      state: started
+      enabled: true
+
+

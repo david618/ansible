@@ -1,0 +1,32 @@
+---
+- hosts: dse-solr-nodes
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+ 
+  tasks: 
+  - name: Start and enable dse
+    service:
+      name: dse
+      state: restarted
+      enabled: True
+ 
+  - name: Start and enable datastax-agent 
+    systemd:
+      name: datastax-agent
+      state: restarted
+      enabled: True
+
+
+- hosts: dse-opscenter
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+
+  tasks:
+  - name: ReStart and enable Opscenter
+    systemd:
+      name: opscenterd
+      state: restarted
+      enabled: True
+  

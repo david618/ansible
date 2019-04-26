@@ -1,0 +1,11 @@
+---
+- hosts: all
+  become: true
+
+  tasks:
+  - name: Copy /etc/hosts from Boot to Nodes
+    copy:
+      src: /etc/hosts
+      dest: /etc/hosts
+ 
+

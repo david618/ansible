@@ -1,0 +1,36 @@
+---
+- hosts: testservers
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+
+  tasks:
+  - name: Install Java
+    yum:
+      name: java-1.8.0-openjdk
+      state: present
+
+  - name: Copy rttest to testservers 
+    copy:
+      src: ~{{ sudouser }}/rttest-files.tgz
+      dest: ~{{ sudouser}}/rttest-files.tgz
+
+
+  - name: Remove rttest folder if exists
+    file:
+      state: absent
+      path: ~{{ sudouser }}/rttest
+
+  - name: Unarchive rttest
+    unarchive:
+      src: ~{{ sudouser }}/rttest-files.tgz
+      remote_src: yes
+      dest: ~{{ sudouser }} 
+
+  - name: Set Permissions
+    file:
+      path: ~{{ sudouser }}/rttest
+      owner: "{{ sudouser }}"
+      group: "{{ sudouser }}"
+      recurse: yes
+

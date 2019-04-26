@@ -1,0 +1,20 @@
+---
+- hosts: brokers
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+
+  tasks:
+  - name: Start and Enable zookeeper
+    systemd:
+      name: zookeeper
+      state: started
+      enabled: true
+
+  - name: Start and Enable Kafka
+    systemd:
+      name: kafka
+      state: started
+      enabled: true
+
+

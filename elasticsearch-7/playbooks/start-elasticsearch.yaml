@@ -1,0 +1,10 @@
+---
+- hosts: nodes
+  become: true
+
+  tasks:
+  - name: Start elasticsearch
+    systemd:
+      name: elasticsearch 
+      state: started
+  

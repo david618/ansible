@@ -1,0 +1,23 @@
+---
+- hosts: slave
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true 
+
+  tasks:
+  - name: Install gdisk
+    yum:
+      name: gdisk
+      state: present      
+
+  - name: Find, partition, format empty disk
+    script: ../files/format-drive.sh
+    register: uuid
+
+  - name: Mount and add disk to fstab
+    mount:
+      path: /opt
+      src: "UUID={{ uuid.stdout_lines[-1] | trim }}"
+      fstype: xfs
+      state: mounted
+    when: uuid.stdout_lines[-1] != "None"

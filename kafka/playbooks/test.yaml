@@ -1,0 +1,29 @@
+---
+- hosts: all
+  
+  vars:
+    ip: "{{ ansible_default_ipv4.address }}"
+    brokerID: "{{ ip.split('.')[-1] }}"
+
+  tasks:
+#  - name: Find ComputeName
+#    shell: curl -sH Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01"  | jq .compute.name
+#    register: computeName
+#
+#  - name: Find Location
+#    shell: curl -sH Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01"  | jq .compute.location
+#    register: computeLocation
+
+  - name: Message
+    debug: 
+      msg: "{{ hostvars }}"
+
+#  - name: Create /etc/hosts
+#    template:
+#      src: ../files/hosts.j2
+#      dest: /etc/hosts
+ 
+#  - name: Copy server.properties
+#    template:
+#      src: ../files/server.properties.j2
+#      dest: ./server.properties

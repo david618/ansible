@@ -1,0 +1,66 @@
+---
+- hosts: nodes
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+
+  tasks:
+  - name: Install java
+    yum:
+      name: epel-release, java-1.8.0-openjdk
+      state: present
+
+  - name: Setup Elastic Repo
+    yum_repository:
+      name: elastic-repo
+      file: elastic
+      description: Elasticsearch Repo 
+      baseurl: https://artifacts.elastic.co/packages/7.x/yum
+      gpgcheck: no
+      enabled: yes
+      state: present
+
+  - name: Install Elasticsearch 
+    yum:
+      name: elasticsearch
+      state: present
+
+  - name: Copy jvm.options config file
+    copy:
+      src: ../files/jvm.options
+      dest: /etc/elasticsearch/jvm.options
+
+  - name: Insert elastic into limits.conf
+    lineinfile:
+      path: /etc/security/limits.conf
+      line: elastic - nofile 65536
+
+  - name: Insert vm.max_map_count into sysctl
+    lineinfile:
+      path: /etc/sysctl.conf
+      line: vm.max_map_count=262144
+
+  - name: Insert vm.swappiness into sysctl
+    lineinfile:
+      path: /etc/sysctl.conf
+      line: vm.swappiness=1
+
+  - name: sysctl -f
+    command: sysctl -f
+
+  - name: Update swappiness in tuned.conf
+    lineinfile:
+      path: /usr/lib/tuned/virtual-guest/tuned.conf
+      regexp: 'vm.swappiness.*'
+      line: vm.swappiness = 1
+
+- hosts: master
+  become: true
+
+  tasks:
+  - name: Copy elasticsearch-one-node.yaml config file
+    copy:
+      src: ../files/elasticsearch-one-node.yml
+      dest: /etc/elasticsearch/elasticsearch.yml
+
+...

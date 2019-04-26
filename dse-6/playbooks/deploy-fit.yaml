@@ -1,0 +1,16 @@
+---
+# assumes you have built the https://github.com/FrankXia/dse-fieldtransformer
+# moved the jar files from dse nodes and installed them on boot
+- hosts: dse-solr-nodes
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+
+  tasks:
+  - name: Copy fit to dse nodes
+    copy:
+      src: ~{{ sudouser }}/dse-fieldtransformer/target/datastore-dse-field-transformer-0.10.16.jar
+      dest: /usr/share/dse/solr/lib/
+      owner: cassandra
+      group: cassandra
+

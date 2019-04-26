@@ -1,0 +1,138 @@
+---
+- hosts: dse-solr-nodes
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true 
+
+  tasks:
+  - name: Create cassandra user
+    user:
+      name: cassandra
+      system: yes
+
+  - name: Create Directory /var/lib/cassandra
+    file:
+      path: /var/lib/cassandra
+      state: directory
+
+  # Data Partition
+  - name: Partition Unpartitioned Drive 
+    parted:
+      device: "/dev/nvme1n1"
+      number: 1
+      state: present
+
+  - name: Format the partition
+    filesystem:
+      fstype: xfs
+      dev: "/dev/nvme1n1p1"
+
+  - name: Create Directory /var/lib/cassandra/data
+    file:
+      path: /var/lib/cassandra/data
+      state: directory
+
+  - name: Find uuid
+    shell: blkid | grep nvme1n1p1 | cut -d ' ' -f2 | tr -d '"'
+    register: uuid
+
+  - name: Mount and add to fstab
+    mount:
+      path: /var/lib/cassandra/data
+      src: "{{ uuid.stdout }}"
+      fstype: xfs
+      state: mounted
+   
+  # commit log
+  - name: Partition Unpartitioned Drive 
+    parted:
+      device: "/dev/nvme2n1"
+      number: 1
+      state: present
+
+  - name: Format the partition
+    filesystem:
+      fstype: xfs
+      dev: "/dev/nvme2n1p1"
+
+  - name: Create Directory /var/lib/cassandra/commitlog
+    file:
+      path: /var/lib/cassandra/commitlog
+      state: directory
+
+  - name: Find uuid
+    shell: blkid | grep nvme2n1p1 | cut -d ' ' -f2 | tr -d '"'
+    register: uuid
+
+  - name: Mount and add to fstab
+    mount:
+      path: /var/lib/cassandra/commitlog
+      src: "{{ uuid.stdout }}"
+      fstype: xfs
+      state: mounted
+
+  # cdc_raw
+  - name: Partition Unpartitioned Drive 
+    parted:
+      device: "/dev/nvme3n1"
+      number: 1
+      state: present
+
+  - name: Format the partition
+    filesystem:
+      fstype: xfs
+      dev: "/dev/nvme3n1p1"
+
+  - name: Create Directory /var/lib/cassandra/cdc_raw
+    file:
+      path: /var/lib/cassandra/cdc_raw
+      state: directory
+
+  - name: Find uuid
+    shell: blkid | grep nvme3n1p1 | cut -d ' ' -f2 | tr -d '"'
+    register: uuid
+
+  - name: Mount and add to fstab
+    mount:
+      path: /var/lib/cassandra/cdc_raw
+      src: "{{ uuid.stdout }}"
+      fstype: xfs
+      state: mounted
+
+  # solr
+  - name: Partition Unpartitioned Drive 
+    parted:
+      device: "/dev/nvme0n1"
+      number: 1
+      state: present
+
+  - name: Format the partition
+    filesystem:
+      fstype: xfs
+      dev: "/dev/nvme0n1p1"
+
+  - name: Create Directory /var/lib/cassandra/solr
+    file:
+      path: /var/lib/cassandra/solr
+      state: directory
+
+  - name: Find uuid
+    shell: blkid | grep nvme0n1p1 | cut -d ' ' -f2 | tr -d '"'
+    register: uuid
+
+  - name: Mount and add to fstab
+    mount:
+      path: /var/lib/cassandra/solr
+      src: "{{ uuid.stdout }}"
+      fstype: xfs
+      state: mounted
+
+  # Change Owner and Permission for Cassandra 
+  - name: Change Permissions /var/lib/cassandra
+    file:
+      path: /var/lib/cassandra
+      state: directory
+      owner: cassandra
+      group: cassandra
+      mode: 0775
+      recurse: yes 

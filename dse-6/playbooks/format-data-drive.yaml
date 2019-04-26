@@ -1,0 +1,43 @@
+---
+- hosts: dse-solr-nodes
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true 
+
+  tasks:
+  - name: Install gdisk
+    yum:
+      name: gdisk
+      state: present      
+
+  - name: Create cassandra user
+    user:
+      name: cassandra
+      system: yes
+
+  - name: Create Directory /var/lib/cassandra
+    file:
+      path: /var/lib/cassandra
+      state: directory
+
+  - name: Find, partition, format empty disk
+    script: ../files/format-drive.sh
+    register: uuid
+
+  - name: Mount and add disk to fstab
+    mount:
+      path: /var/lib/cassandra
+      src: "UUID={{ uuid.stdout_lines[-1] | trim }}"
+      fstype: xfs
+      state: mounted
+    when: uuid.stdout_lines[-1] != "None"
+
+  - name: Set Permissions /var/lib/cassandra
+    file:
+      path: /var/lib/cassandra
+      state: directory
+      owner: root
+      group: root
+      mode: 755
+      recurse: yes 
+

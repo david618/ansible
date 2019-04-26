@@ -1,0 +1,7 @@
+---
+- name: Top level play
+  hosts: all
+
+- import_playbook: playbooks/format-drives.yaml
+- import_playbook: playbooks/install-dse.yaml
+

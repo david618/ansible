@@ -1,0 +1,37 @@
+---
+# From home folder after building sparktest create the tgz file for example
+# tar cvzf sparktest-files.tgz sparktest/target/sparktest.jar sparktest/target/dependency-jars/* sparktest/planes.csv
+- hosts: spark
+  vars:
+    sudouser: "{{ ansible_env['SUDO_USER'] }}"
+  become: true
+
+  tasks:
+  - name: Copy sparktest to spark nodes
+    copy:
+      src: ~{{ sudouser }}/sparktest-files.tgz
+      dest: /home/spark/sparktest-files.tgz
+      owner: spark
+      group: spark
+
+
+  - name: Remove sparktest folder if exists
+    file:
+      state: absent
+      path: /home/spark/sparktest
+
+  - name: Unarchive sparktest
+    unarchive:
+      src: /home/spark/sparktest-files.tgz
+      remote_src: yes
+      dest: /home/spark
+      group: spark
+      owner: spark
+
+  - name: Set Permissions
+    file:
+      path: /home/spark/sparktest
+      owner: spark
+      group: spark
+      recurse: yes
+
