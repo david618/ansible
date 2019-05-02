@@ -5,10 +5,13 @@
 # sudo yum -y install azure-cli
 # sudo yum -y install jq
 
+if [ "$#" -ne 1 ]; then
+    echo "Illegal number of parameters"
+    echo "$0 [start|deallocate]"
+    exit 1
+fi
 
-
-#ACTION="deallocate"
-ACTION="start"
+ACTION=$1
 
 
 # Use Azure Metadata to lookup Resource Group
@@ -20,17 +23,20 @@ if [ -z "${resourceGroup}" ]; then
   exit 1
 fi
 
-for i in $(seq 1 10); do
+for i in $(seq 1 1); do
   name=a${i}
-  az vm ${ACTION} --resource-group ${resourceGroup} --name ${resourceGroup}${name} > down_${name}.log 2>&1 &
+  echo "Starting ${name}; logs to /tmp/${name}.log"
+  az vm ${ACTION} --resource-group ${resourceGroup} --name ${resourceGroup}${name} > /tmp/${name}.log 2>&1 &
 done
 
-for i in $(seq 41 43); do
+for i in $(seq 41 41); do
   name=a${i}
-  az vm ${ACTION} --resource-group ${resourceGroup} --name ${resourceGroup}${name} > down_${name}.log 2>&1 &
+  echo "Starting ${name}; logs to /tmp/${name}.log"
+  az vm ${ACTION} --resource-group ${resourceGroup} --name ${resourceGroup}${name} > /tmp/${name}.log 2>&1 &
 done
 
 for i in $(seq 101 103); do
   name=a${i}
-  az vm ${ACTION} --resource-group ${resourceGroup} --name ${resourceGroup}${name} > down_${name}.log 2>&1 &
+  echo "Starting ${name}; logs to /tmp/${name}.log"
+  az vm ${ACTION} --resource-group ${resourceGroup} --name ${resourceGroup}${name} > /tmp/${name}.log 2>&1 &
 done
