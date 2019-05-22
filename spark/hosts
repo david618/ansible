@@ -1,11 +1,11 @@
 [bastion]
 boot
 [master]
-m1
+boot
 [slave]
-a1
-a2
-a3
+a21
+a22
+a23
 [spark:children]
 master
 slave
