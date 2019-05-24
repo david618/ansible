@@ -23,20 +23,28 @@ if [ -z "${resourceGroup}" ]; then
   exit 1
 fi
 
-for i in $(seq 1 1); do
+for i in $(seq 1 3); do
   name=a${i}
   echo "Starting ${name}; logs to /tmp/${name}.log"
   az vm ${ACTION} --resource-group ${resourceGroup} --name ${resourceGroup}${name} > /tmp/${name}.log 2>&1 &
 done
 
-for i in $(seq 41 41); do
+for i in $(seq 41 43); do
   name=a${i}
   echo "Starting ${name}; logs to /tmp/${name}.log"
   az vm ${ACTION} --resource-group ${resourceGroup} --name ${resourceGroup}${name} > /tmp/${name}.log 2>&1 &
 done
 
-for i in $(seq 101 103); do
+for i in $(seq 21 23); do
   name=a${i}
   echo "Starting ${name}; logs to /tmp/${name}.log"
   az vm ${ACTION} --resource-group ${resourceGroup} --name ${resourceGroup}${name} > /tmp/${name}.log 2>&1 &
 done
+
+for i in $(seq 81 81); do
+  name=a${i}
+  echo "Starting ${name}; logs to /tmp/${name}.log"
+  az vm ${ACTION} --resource-group ${resourceGroup} --name ${resourceGroup}${name} > /tmp/${name}.log 2>&1 &
+done
+
+
